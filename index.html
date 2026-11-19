@@ -1,0 +1,74 @@
+<script>
+  document.getElementById("btnRevelar").addEventListener("click", async function () {
+    const input = document.getElementById("nascimento");
+    const data = input.value;
+    const caixa = document.getElementById("resultado");
+
+    if (!data) {
+      caixa.innerHTML = '<p class="erro">Por favor, selecione sua data de nascimento.</p>';
+      caixa.classList.add("ativo");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("nascimento", data);
+
+    try {
+      const response = await fetch("/revelar", {
+        method: "POST",
+        body: formData
+      });
+
+      const s = await response.json();
+
+      if (s.erro) {
+        caixa.innerHTML = `<p class="erro">${s.erro}</p>`;
+        caixa.classList.add("ativo");
+        return;
+      }
+
+      let tags = "";
+      s.caracteristicas.forEach(c => {
+        tags += `<span class="trait">${c}</span>`;
+      });
+
+      caixa.innerHTML = `
+        <div class="resultado-header">
+          <div class="glyph">${s.glifo}</div>
+          <h2>${s.nome}</h2>
+          <p class="periodo">${s.periodo}</p>
+        </div>
+        <p class="data-nasc">Data informada: <strong>${s.data_formatada}</strong></p>
+        <div class="badges">
+          <span class="badge">Elemento: ${s.elemento}</span>
+          <span class="badge">Modalidade: ${s.modalidade}</span>
+          <span class="badge">Planeta: ${s.planeta}</span>
+        </div>
+        <div class="section">
+          <h3>Sobre o signo</h3>
+          <p>${s.descricao}</p>
+        </div>
+        <div class="section">
+          <h3>Principais características</h3>
+          <div class="traits">${tags}</div>
+        </div>
+        <div class="section">
+          <h3>Pontos fortes</h3>
+          <p>${s.pontos_fortes}</p>
+        </div>
+        <div class="section">
+          <h3>Pontos fracos</h3>
+          <div class="fracos"><p>${s.pontos_fracos}</p></div>
+        </div>
+      `;
+
+      caixa.classList.add("ativo");
+      setTimeout(() => caixa.scrollIntoView({ behavior: "smooth", block: "nearest" }), 100);
+
+    } catch (err) {
+      console.error(err);
+      caixa.innerHTML = '<p class="erro">Erro ao conectar com o servidor. Verifique se o Python está rodando.</p>';
+      caixa.classList.add("ativo");
+    }
+  });
+</script>
